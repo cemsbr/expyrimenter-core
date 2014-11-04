@@ -16,8 +16,6 @@ import hashlib
 import hmac
 import json
 import logging
-import string
-import urllib
 
 
 class SignedAPICall():
@@ -66,7 +64,7 @@ class SignedAPICall():
 
 class API(SignedAPICall):
     def __init__(self):
-        cfg = Config('api')
+        cfg = Config('cloudstack')
         super().__init__(cfg.get('url'), cfg.get('key'), cfg.get('secret'))
 
     def __getattr__(self, name):

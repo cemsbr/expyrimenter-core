@@ -2,7 +2,6 @@ from .api import API
 from .statemonitor import StateMonitorProcess
 from expyrimenter import Executor, SSH
 from time import sleep
-from urllib.error import HTTPError
 import threading
 import logging
 
@@ -29,7 +28,7 @@ class CloudStack:
 
     def get_id(s, name):
         cache = CloudStack._id_cache
-        if cache is None or not name in cache:
+        if cache is None or name not in cache:
             s.load_id_cache()
 
         return CloudStack._id_cache[name]
@@ -66,7 +65,7 @@ class CloudStack:
     def deploy(s, params, **kwargs):
         if kwargs:
             params.update(kwargs)
-        future = s._submit_sm_user(deploy_vm, 'deploy VM', params)
+        s._submit_sm_user(deploy_vm, 'deploy VM', params)
 
     def deploy_like(s, existent, new, **kwargs):
         params = s.get_deploy_params(existent)
@@ -108,7 +107,7 @@ class CloudStack:
 
 def stop_vm(name, vm_id):
     api = API()
-    result = api.stopVirtualMachine(id=vm_id)
+    api.stopVirtualMachine(id=vm_id)
     msg = 'Sent %s stop request.' % name
     logging.getLogger('cloudstack').debug(msg)
 

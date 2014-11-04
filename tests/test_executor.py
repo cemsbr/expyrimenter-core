@@ -37,7 +37,7 @@ class TestExecutor(unittest.TestCase):
 
     def test_function_output(self):
         executor = Executor()
-        executor.run_function(test_function)
+        executor.run_function(background_function)
         executor.wait()
         output = executor.results[0]
         self.assertEqual(TestExecutor.output, output)
@@ -63,7 +63,7 @@ class TestExecutor(unittest.TestCase):
 
     def test_against_function_memory_leak(self):
         executor = Executor()
-        executor.run_function(test_function)
+        executor.run_function(background_function)
         executor.wait()
         self.assertEqual(0, len(executor._function_titles))
 
@@ -160,7 +160,7 @@ class Matcher:
         return self.compare(msg)
 
 
-def test_function():
+def background_function():
     return TestExecutor.output
 
 if __name__ == '__main__':

@@ -3,12 +3,12 @@ from expyrimenter import SSH, Executor
 
 
 # Suppose we have a cluster with hostnames vm0, vm1 and vm2
-cluster = ['hdpd%d' % i for i in range(0, 3)]
+cluster = ['vm%d' % i for i in range(0, 3)]
 
 # Let's run the command below in all VMs:
 cmd = 'echo "$(date +%S) Hello by $(hostname)"'
 
-# Blocking version
+# Blocking version, serial execution
 print('Serial execution\n================')
 for vm in cluster:
     output = SSH(vm, cmd, stdout=True).run()
@@ -17,7 +17,7 @@ for vm in cluster:
 # Create a pool for parallel execution
 pool = Executor()
 
-# Non-blocking version
+# Non-blocking version, parallel execution
 print('\nParallel execution\n==================')
 for vm in cluster:
     ssh = SSH(vm, cmd, stdout=True, stderr=False)

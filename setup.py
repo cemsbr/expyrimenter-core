@@ -17,7 +17,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # http://packaging.python.org/en/latest/tutorial.html#version
-    version='0.1.1',
+    version='0.2.0',
 
     description='Python tool to ease and parallelize distributed system'
                 ' management tasks.',
@@ -70,7 +70,7 @@ setup(
     # project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/technical.html#install-requires-vs-requirements-files
-    # install_requires=['requests'],
+    install_requires=['requests'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies).

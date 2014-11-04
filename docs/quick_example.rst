@@ -16,6 +16,6 @@ Output (with all clocks synchronized)::
 
   Parallel execution
   ==================
-  04 Hello by vm2
-  04 Hello by vm0
-  04 Hello by vm1
+  02 Hello by vm2
+  02 Hello by vm0
+  02 Hello by vm1

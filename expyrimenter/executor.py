@@ -8,7 +8,7 @@ from subprocess import CalledProcessError
 class Executor:
     def __init__(s, max_workers=None):
         if max_workers is None:
-            max_workers = int(Config('workers').get('max'))
+            max_workers = int(Config('executor').get('max_concurrency'))
 
         s._executor = ThreadPoolExecutor(max_workers)
         s._future_runnables = {}  # for submitted runnables

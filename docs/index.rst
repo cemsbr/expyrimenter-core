@@ -3,13 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Expyrimenter's documentation!
-========================================
+Expyrimenter Documentation
+==========================
 
-Expyrimenter is a simple tool to help experiment automation. Its most useful
-feature is to easily execute shell commands in parallel, including remote
-executions using SSH.
-It is written in Python 3.2, so it can be executed in Ubuntu 12.04.
+Expyrimenter is an easy-to-use Python tool to help experiment automation.
+It makes it easy to execute local and remote commands in parallel.
+With :doc:`Pushbullet <pushbullet>`, you can receive messages in your
+mobile phone if your experiment freezes or right after it finishes.
+Expyrimenter:
+
+ * Is a simple an easy way to run shell and SSH in Python
+ * Can run shell, SSH and Python code in parallel
+   (it has been used in 200 VMs concurrently)
+ * Is flexible and extensible
+ * Has few configurations in one single file
+ * Compatible with Python >= 3.2 (Ubuntu >= 10.04)
+ * Is concerned about its source code:
+
+   * Free software available at `GiHub <https://github.com/cemsbr/expyrimenter>`_
+   * Continuous integration
+   * Code coverage target is 100%
+   * No pep8 or flake8 issues
 
 Contents:
 
@@ -18,6 +32,7 @@ Contents:
 
    quick_example
    core
+   pushbullet
    cloudstack_index
 
 

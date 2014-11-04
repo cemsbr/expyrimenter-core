@@ -1,6 +1,5 @@
 import unittest
 from mock import Mock, patch
-import subprocess
 from subprocess import CalledProcessError
 from expyrimenter import Shell
 

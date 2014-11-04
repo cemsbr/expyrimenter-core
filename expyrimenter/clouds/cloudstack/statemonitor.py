@@ -64,7 +64,7 @@ class StateMonitorProcess:
 
     @staticmethod
     def stop():
-        if not StateMonitorProcess._process is None:
+        if StateMonitorProcess._process is not None:
             cls = StateMonitorProcess
             cls._process.terminate()
             cls._process.join()
