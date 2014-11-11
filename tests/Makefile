@@ -28,6 +28,6 @@ coverage-html: .coverage
 	coverage html
 
 clean:
-	rm -rf coverage_html .coverage
+	rm -rf coverage_html .coverage __pycache__
 
 FORCE:

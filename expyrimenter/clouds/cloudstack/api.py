@@ -31,7 +31,7 @@ class SignedAPICall():
         self.params = []
         self._sort_request(args)
         self._create_signature()
-        self._build_post_request()
+        self._build_get_request()
 
     def _sort_request(self, args):
         keys = sorted(args.keys())
@@ -57,7 +57,7 @@ class SignedAPICall():
 
         self.signature = base64.b64encode(digest)
 
-    def _build_post_request(self):
+    def _build_get_request(self):
         self.query += '&signature=' + quote_plus(self.signature)
         self.value = self.url + '?' + self.query
 
@@ -71,12 +71,16 @@ class API(SignedAPICall):
         def handlerFunction(*args, **kwargs):
             if kwargs:
                 return self._make_request(name, kwargs)
-            if len(args) == 0:
-                args = [{}]
-            return self._make_request(name, args[0])
+            if len(args) > 0:
+                raise TypeError('API call parameters must be named:\n'
+                                '           '
+                                "api.command(param1='value1', param2='value2'"
+                                ', ...)')
+            return self._make_request(name, {})
         return handlerFunction
 
     def _http_get(self, url):
+        self._logger.debug(url)
         try:
             response = urlopen(url)
         except HTTPError:
