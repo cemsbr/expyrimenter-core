@@ -49,7 +49,7 @@ class CloudStack:
         names = s._ensure_lists(names)
         for name in names:
             vm_id = s.get_id(name)
-            s.executor.run_fn(stop_vm, 'stop VM', name, vm_id)
+            s.executor.run_function(stop_vm, 'stop VM', name, vm_id)
 
     def get_deploy_params(s, name):
         vm_id = s.get_id(name)
@@ -84,7 +84,7 @@ class CloudStack:
 
         states = StateMonitorProcess.get_states()
         args += (states,)
-        future = s.executor.run_fn(fn, title, *args, **kwargs)
+        future = s.executor.run_function(fn, title, *args, **kwargs)
         future.add_done_callback(s._sm_user_done)
 
         return future
