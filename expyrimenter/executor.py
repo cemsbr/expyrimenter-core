@@ -3,6 +3,7 @@ from . import Config
 import concurrent.futures
 import logging
 from subprocess import CalledProcessError
+from urllib.error import HTTPError
 
 
 class Executor:
@@ -55,13 +56,13 @@ class Executor:
     def _done(s, future, title):
         if title is None:
             title = 'no given title'
-        result = None
 
         ex = future.exception()
         if ex is None:
             s._log.debug('success:%s' % title)
             result = future.result()
         else:
+            result = ex
             if type(ex) is CalledProcessError:
                 msg = 'CalledProcessError:'
                 if title != ex.cmd:
@@ -72,6 +73,8 @@ class Executor:
                 result = ex.output
             else:
                 msg = 'exception:%s:%s' % (title, ex)
+                if type(ex) is HTTPError:
+                    msg += ':%s' % ex.read()
             s._log.error(msg)
 
         s.results.append(result)
@@ -84,6 +87,9 @@ class Executor:
 
     def shutdown(s):
         s._executor.shutdown()
+        s.clear()
+
+    def clear(s):
         s._future_runnables.clear()
         s._function_titles.clear()
         del s.results[:]

@@ -10,7 +10,7 @@
 from expyrimenter import Config
 from urllib.parse import quote_plus
 from urllib.request import urlopen
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 import base64
 import hashlib
 import hmac
@@ -83,8 +83,8 @@ class API(SignedAPICall):
         self._logger.debug(url)
         try:
             response = urlopen(url)
-        except HTTPError:
-            self._logger.error('Error getting "%s"' % url)
+        except (HTTPError, URLError):
+            self._logger.error('HTTP GET Error "%s"' % url)
             raise
 
         return response.read()
