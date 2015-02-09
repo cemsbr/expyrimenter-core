@@ -6,6 +6,10 @@ import threading
 import logging
 
 
+class VMNotFound(Exception):
+    pass
+
+
 class CloudStack:
     _id_cache = None
 
@@ -23,49 +27,69 @@ class CloudStack:
         s._sm_users = 0
 
     def get_states(s):
-        vms = s._api.listVirtualMachines()['virtualmachine']
+        vms = s._list_vms()
         return {vm['name']: vm['state'] for vm in vms}
 
+    # All not-found VM names are logged as error
     def get_id(s, name):
         cache = CloudStack._id_cache
         if cache is None or name not in cache:
             s.load_id_cache()
 
+        if name not in CloudStack._id_cache:
+            msg = 'VM "%s" not found.' % name
+            s._logger.error(msg)
+            raise VMNotFound(msg)
+
         return CloudStack._id_cache[name]
 
     def get_state(s, name):
-        vm_id = s.get_id(name)
-        vms = s._api.listVirtualMachines(id=vm_id)['virtualmachine']
-        return vms[0]['state']
+        try:
+            vm_id = s.get_id(name)
+            vms = s._list_vms(vm_id)
+            state = vms[0]['state']
+        except VMNotFound:
+            state = None
+        return state
 
     def start(s, *names):
         names = s._ensure_lists(names)
         for name in names:
             s._logger.info('Starting %s' % name)
-            vm_id = s.get_id(name)
-            s._submit_sm_user(start_vm, 'start VM', name, vm_id)
+            try:
+                vm_id = s.get_id(name)
+                s._submit_sm_user(start_vm, 'start VM', name, vm_id)
+            except VMNotFound:
+                pass
 
     def stop(s, *names):
         names = s._ensure_lists(names)
         for name in names:
-            vm_id = s.get_id(name)
-            s.executor.run_function(stop_vm, 'stop VM', name, vm_id)
+            try:
+                vm_id = s.get_id(name)
+                s.executor.run_function(stop_vm, 'stop VM', name, vm_id)
+            except VMNotFound:
+                pass
 
     def get_deploy_params(s, name):
-        vm_id = s.get_id(name)
-        vm = s._api.listVirtualMachines(id=vm_id)['virtualmachine'][0]
-        keys = ['serviceofferingid', 'templateid', 'zoneid']
-
         params = {}
-        for key in keys:
-            params[key] = vm[key]
+        try:
+            vm_id = s.get_id(name)
+            vms = s._list_vms(vm_id)
+            vm = vms[0]
+            deploy_keys = ['serviceofferingid', 'templateid', 'zoneid']
 
+            for key in deploy_keys:
+                params[key] = vm[key]
+        except VMNotFound:
+            pass
         return params
 
     def deploy(s, params, **kwargs):
         if kwargs:
             params.update(kwargs)
-        s._submit_sm_user(deploy_vm, 'deploy VM', params)
+        name = params['name']
+        s._submit_sm_user(deploy_vm, '%s deployment' % name, params)
 
     def deploy_like(s, existent, new, **kwargs):
         params = s.get_deploy_params(existent)
@@ -73,9 +97,21 @@ class CloudStack:
         s.deploy(params, **kwargs)
 
     def load_id_cache(s):
-        vms = s._api.listVirtualMachines()['virtualmachine']
+        vms = s._list_vms()
         CloudStack._id_cache = {vm['name']: vm['id'] for vm in vms}
         return CloudStack._id_cache
+
+    def _list_vms(s, id=None):
+        try:
+            # TODO one call
+            if id:
+                vms = s._api.listVirtualMachines(id=id)['virtualmachine']
+            else:
+                vms = s._api.listVirtualMachines()['virtualmachine']
+        except:
+            s._logger.error('Error getting VM list.')
+            vms = {}
+        return vms
 
     def _submit_sm_user(s, fn, title, *args, **kwargs):
         with s._sm_lock:
