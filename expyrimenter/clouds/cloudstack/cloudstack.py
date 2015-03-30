@@ -24,7 +24,7 @@ class CloudStack:
         s._logger = logging.getLogger('cloudstack')
 
         s._sm_lock = threading.Lock()
-        s._sm_users = 0
+        s._sm_tasks = 0
 
     def get_states(s):
         vms = s._list_vms()
@@ -43,14 +43,11 @@ class CloudStack:
 
         return CloudStack._id_cache[name]
 
+    # throws VMNotFound
     def get_state(s, name):
-        try:
-            vm_id = s.get_id(name)
-            vms = s._list_vms(vm_id)
-            state = vms[0]['state']
-        except VMNotFound:
-            state = None
-        return state
+        vm_id = s.get_id(name)
+        vms = s._list_vms(vm_id)
+        return vms[0]['state']
 
     def start(s, *names):
         names = s._ensure_lists(names)
@@ -58,9 +55,9 @@ class CloudStack:
             s._logger.info('Starting %s' % name)
             try:
                 vm_id = s.get_id(name)
-                s._submit_sm_user(start_vm, 'start VM', name, vm_id)
+                s._submit_sm_task(start_vm, 'start VM', name, vm_id)
             except VMNotFound:
-                pass
+                pass  # do not quit the loop
 
     def stop(s, *names):
         names = s._ensure_lists(names)
@@ -69,27 +66,24 @@ class CloudStack:
                 vm_id = s.get_id(name)
                 s.executor.run_function(stop_vm, 'stop VM', name, vm_id)
             except VMNotFound:
-                pass
+                pass    # do not quit the loop
 
     def get_deploy_params(s, name):
         params = {}
-        try:
-            vm_id = s.get_id(name)
-            vms = s._list_vms(vm_id)
-            vm = vms[0]
-            deploy_keys = ['serviceofferingid', 'templateid', 'zoneid']
+        vm_id = s.get_id(name)
+        vms = s._list_vms(vm_id)
+        vm = vms[0]
 
-            for key in deploy_keys:
-                params[key] = vm[key]
-        except VMNotFound:
-            pass
+        deploy_keys = ['serviceofferingid', 'templateid', 'zoneid']
+        for key in deploy_keys:
+            params[key] = vm[key]
         return params
 
     def deploy(s, params, **kwargs):
         if kwargs:
             params.update(kwargs)
         name = params['name']
-        s._submit_sm_user(deploy_vm, '%s deployment' % name, params)
+        s._submit_sm_task(deploy_vm, '%s deployment' % name, params)
 
     def deploy_like(s, existent, new, **kwargs):
         params = s.get_deploy_params(existent)
@@ -101,34 +95,30 @@ class CloudStack:
         CloudStack._id_cache = {vm['name']: vm['id'] for vm in vms}
         return CloudStack._id_cache
 
-    def _list_vms(s, id=None):
+    def _list_vms(s, **kwargs):
         try:
-            # TODO one call
-            if id:
-                vms = s._api.listVirtualMachines(id=id)['virtualmachine']
-            else:
-                vms = s._api.listVirtualMachines()['virtualmachine']
+            vms = s._api.listVirtualMachines(**kwargs)['virtualmachine']
         except:
             s._logger.error('Error getting VM list.')
             vms = {}
         return vms
 
-    def _submit_sm_user(s, fn, title, *args, **kwargs):
+    def _submit_sm_task(s, fn, title, *args, **kwargs):
         with s._sm_lock:
-            s._sm_users += 1
+            s._sm_tasks += 1
             StateMonitorProcess.start()
 
         states = StateMonitorProcess.get_states()
         args += (states,)
         future = s.executor.run_function(fn, title, *args, **kwargs)
-        future.add_done_callback(s._sm_user_done)
+        future.add_done_callback(s._sm_task_done)
 
         return future
 
-    def _sm_user_done(s, future):
+    def _sm_task_done(s, future):
         with s._sm_lock:
-            s._sm_users -= 1
-            if s._sm_users == 0:
+            s._sm_tasks -= 1
+            if s._sm_tasks == 0:
                 StateMonitorProcess.stop()
 
     def _ensure_lists(s, args):
