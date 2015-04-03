@@ -1,5 +1,5 @@
 import unittest
-from mock import Mock, patch
+from unittest.mock import Mock, patch
 from expyrimenter.apps import Pushbullet
 from expyrimenter import Config
 

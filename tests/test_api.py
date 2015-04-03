@@ -1,6 +1,6 @@
 import unittest
 from expyrimenter.clouds.cloudstack import API
-from mock import patch
+from unittest.mock import patch
 from urllib.error import HTTPError
 
 
