@@ -46,7 +46,7 @@ class CloudStack:
     # throws VMNotFound
     def get_state(s, name):
         vm_id = s.get_id(name)
-        vms = s._list_vms(vm_id)
+        vms = s._list_vms(id=vm_id)
         return vms[0]['state']
 
     def start(s, *names):
@@ -71,7 +71,7 @@ class CloudStack:
     def get_deploy_params(s, name):
         params = {}
         vm_id = s.get_id(name)
-        vms = s._list_vms(vm_id)
+        vms = s._list_vms(id=vm_id)
         vm = vms[0]
 
         deploy_keys = ['serviceofferingid', 'templateid', 'zoneid']
