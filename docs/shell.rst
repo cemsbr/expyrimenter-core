@@ -3,13 +3,14 @@ Shell
 
 This is one of the innermost classes.
 The parameters are passed to the constructor and then
-you can call :func:`run() <expyrimenter.Shell.run>` or
-use an :class:`Executor <expyrimenter.Executor>` instance to run in parallel.
+you can call :func:`run() <expyrimenter.core.Shell.run>` or
+use an :class:`Executor <expyrimenter.core.Executor>`
+instance to run in parallel.
 
-  >>> from expyrimenter import Shell
+  >>> from expyrimenter.core import Shell
   >>> Shell('echo Hello', stdout=True).run()
   'Hello'
-  >>> # You can use try/except
+  >>> # You can also use try/except
   >>> from subprocess import CalledProcessError
   >>> try:
   >>>     Shell('wrongcommand').run()
@@ -17,7 +18,7 @@ use an :class:`Executor <expyrimenter.Executor>` instance to run in parallel.
   >>>     print("Failed: %s" % e.output)
   Failed: /bin/sh: 1: wrongcommand: not found
 
-.. automodule:: expyrimenter
+.. automodule:: expyrimenter.core
 
 .. autoclass:: Shell
     :members:

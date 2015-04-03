@@ -11,7 +11,7 @@ class Config:
     it will take effect in every new object.
     """
     user_ini = join(expanduser('~'), '.expyrimenter', 'config.ini')
-    _default_ini = join(dirname(__file__), 'config.ini')
+    _default_ini = join(dirname(__file__), '../', 'config.ini')
     _logger = logging.getLogger('config')
 
     def __init__(self, section):

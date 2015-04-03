@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from expyrimenter import SSH
+from expyrimenter.core import SSH
 
 
 class TestSSH(unittest.TestCase):
@@ -15,20 +15,20 @@ class TestSSH(unittest.TestCase):
         cmd = SSH('', remote_cmd).command
         self.assertRegex(cmd, '.*{!s}'.format(remote_cmd))
 
-    @patch('expyrimenter.SSH._redirect_outputs', return_value='')
+    @patch('expyrimenter.core.ssh.SSH._redirect_outputs', return_value='')
     def test_output_redirection(self, mock):
         SSH('user@host', 'echo Hello')
         self.assertTrue(mock.called)
 
-    @patch('expyrimenter.Shell.has_failed', side_effect=[True, False])
-    @patch('expyrimenter.ssh.sleep')
+    @patch('expyrimenter.core.shell.Shell.has_failed', side_effect=[True, False])
+    @patch('expyrimenter.core.ssh.sleep')
     def test_availability_at_second_attempt(self, sleep_mock, failed_mock):
         SSH.await_availability('')
         self.assertEqual(2, failed_mock.call_count)
         self.assertTrue(sleep_mock.called)
 
-    @patch('expyrimenter.SSH.has_failed', return_value=False)
-    @patch('expyrimenter.ssh.sleep')
+    @patch('expyrimenter.core.ssh.SSH.has_failed', return_value=False)
+    @patch('expyrimenter.core.ssh.sleep')
     def test_availability_at_first_attempt(self, sleep_mock, failed_mock):
         SSH.await_availability('')
         self.assertEqual(1, failed_mock.call_count)

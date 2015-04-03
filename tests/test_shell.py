@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 from subprocess import CalledProcessError
-from expyrimenter import Shell
+from expyrimenter.core import Shell
 
 
 class TestShell(unittest.TestCase):

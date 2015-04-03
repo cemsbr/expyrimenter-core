@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from . import Config
+from .config import Config
 import concurrent.futures
 import logging
 from subprocess import CalledProcessError

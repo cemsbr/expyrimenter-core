@@ -1,4 +1,4 @@
-from expyrimenter import Shell
+from .shell import Shell
 from time import sleep
 import logging
 import random

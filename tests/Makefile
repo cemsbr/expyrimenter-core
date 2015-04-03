@@ -10,7 +10,7 @@ help:
 	@echo ' coverage-html: generates report in coverage_html/index.html'
 	@echo '         clean: deletes coverage data and html report'
 
-coverage: .coverage FORCE
+coverage: .coverage
 	@PREFIX="$$(readlink -e $$(dirname $$(pwd)))/expyrimenter/"; \
 	        coverage report \
 	        | sed "s|$$PREFIX||" \
@@ -19,6 +19,7 @@ coverage: .coverage FORCE
 	        | sed "s/^TOTAL \{$${#PREFIX}\}/TOTAL/"
 
 .coverage: test_*.py $(RESOURCES)
+	@-rm -f .coverage
 	@export PYTHONPATH="$$PYTHON_PATH:.."; \
 	for test in test_*.py; do \
 		coverage run -a $$test; \
@@ -26,8 +27,7 @@ coverage: .coverage FORCE
 
 coverage-html: .coverage
 	coverage html
+	@echo 'Output in coverage_html/index.html'
 
 clean:
 	rm -rf coverage_html .coverage __pycache__
-
-FORCE:

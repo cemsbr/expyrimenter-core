@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from expyrimenter import Config
+from expyrimenter.core import Config
 from configparser import ConfigParser
 
 

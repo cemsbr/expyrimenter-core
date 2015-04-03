@@ -8,17 +8,18 @@ Expyrimenter Documentation
 
 Expyrimenter is an easy-to-use Python tool to help experiment automation.
 It makes it easy to execute local and remote commands in parallel.
-With :doc:`Pushbullet <pushbullet>`, you can receive messages in your
-mobile phone if your experiment freezes or right after it finishes.
-Expyrimenter:
+With a pushbullet integration (check expyrimenter-pushbullet project),
+you can receive messages in your mobile phone if your experiment freezes
+or right after it finishes.
+Expyrimenter is:
 
- * Is a simple an easy way to run shell and SSH in Python
- * Can run shell, SSH and Python code in parallel
+ * A simple an easy way to run shell and SSH in Python
+ * Able to run shell, SSH and Python code in parallel
    (it has been used in 200 VMs concurrently)
- * Is flexible and extensible
- * Has few configurations in one single file
- * Compatible with Python >= 3.2 (Ubuntu >= 10.04)
- * Is concerned about its source code:
+ * Flexible and extensible
+ * Easy to configure: few configurations in one single file
+ * Compatible with Python >= 3.3
+ * Concerned about its source code:
 
    * Free software available at `GiHub <https://github.com/cemsbr/expyrimenter>`_
    * Continuous integration
@@ -32,8 +33,6 @@ Contents:
 
    quick_example
    core
-   pushbullet
-   cloudstack_index
 
 
 Indices and tables

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
-from expyrimenter import Executor
-from expyrimenter.runnable import Runnable
+from expyrimenter.core import Executor
+from expyrimenter.core import Runnable
 from subprocess import CalledProcessError
 from concurrent.futures import ThreadPoolExecutor
 import re
