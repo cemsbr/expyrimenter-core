@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from expyrimenter import SSH, Executor
+from expyrimenter.core import SSH, Executor
 
 
 # Suppose we have a cluster with hostnames vm0, vm1 and vm2
@@ -20,7 +20,7 @@ pool = Executor()
 # Non-blocking version, parallel execution
 print('\nParallel execution\n==================')
 for vm in cluster:
-    ssh = SSH(vm, cmd, stdout=True, stderr=False)
+    ssh = SSH(vm, cmd, stdout=True)
     pool.run(ssh)
 
 # Block until all parallel calls are done

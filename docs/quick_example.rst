@@ -6,7 +6,7 @@ This example shows how to run SSH commands in serial and in parallel.
 .. literalinclude:: quick_example.py
    :language: python
 
-Output (with all clocks synchronized)::
+Output (VM clocks are synchronized)::
 
   Serial execution
   ================

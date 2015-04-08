@@ -16,6 +16,7 @@ class Shell(Runnable):
     """
 
     def __init__(self, cmd, title=None, stdout=False, stderr=True):
+        super().__init__()
         self._cmd = self._redirect_outputs(cmd, stdout, stderr)
         self._title, self._stdout, self._stderr = title, stdout, stderr
         self._log = logging.getLogger('shell')
@@ -33,28 +34,11 @@ class Shell(Runnable):
 
         return cmd + suffix
 
-    @property
-    def command(self):
-        """
-        The command to be run in shell.
-
-        :rtype: str
-        """
-        return self._cmd
-
-    @property
-    def title(self):
-        """
-        If the title is not set, returns :func:`command`.
-
-        :rtype: str
-        """
-        if self._title is None:
-            return self._cmd
-        return self._title
+    def _title_cmd(self):
+        return self._title if self._title else self._cmd
 
     def run_pre(self):
-        self._log.debug('beginning:' + self.title)
+        self._log.debug('beginning:' + self._title_cmd())
 
     def run(self):
         """If the command exits 0, returns 0 or selected (stdout/stderr) output.
@@ -71,21 +55,27 @@ class Shell(Runnable):
             kwargs['stderr'] = subprocess.STDOUT
 
         if not (self._stdout or self._stderr):
-            output = subprocess.check_call(self._cmd, **kwargs)
+            self.output = subprocess.check_call(self._cmd, **kwargs)
             self.run_pos()
         else:
             try:
-                output = subprocess.check_output(self._cmd, **kwargs).strip()
+                self.output = subprocess.check_output(self._cmd,
+                                                      **kwargs).strip()
+                self._log.info('success ' + self._title_cmd())
+                self.failed = False
             except CalledProcessError as e:
-                output = '{} - code {}'.format(self.title, e.returncode)
+                self.output = 'failure {} - code {}'.format(self._title_cmd(),
+                                                            e.returncode)
                 if e.output:
-                    output += ', msg "{}"'.format(e.output.rstrip())
-                self._log.error(output)
+                    self.output += ', output "{}"'.format(e.output.rstrip())
+                self._log.error(self.output)
+                self.failed = True
                 raise e
             finally:
+                self.executed = True
                 self.run_pos()
 
-        return output
+        return self.output
 
     def was_successful(self):
         """Runs the command and returns whether the return code is 0.
@@ -108,4 +98,4 @@ class Shell(Runnable):
         return not self.was_successful()
 
     def run_pos(self):
-        self._log.debug('finished:' + self.title)
+        self._log.debug('finished:' + self._title_cmd())
