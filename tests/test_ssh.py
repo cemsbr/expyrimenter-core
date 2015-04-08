@@ -20,7 +20,8 @@ class TestSSH(unittest.TestCase):
         SSH('user@host', 'echo Hello')
         self.assertTrue(mock.called)
 
-    @patch('expyrimenter.core.shell.Shell.has_failed', side_effect=[True, False])
+    @patch('expyrimenter.core.shell.Shell.has_failed',
+           side_effect=[True, False])
     @patch('expyrimenter.core.ssh.sleep')
     def test_availability_at_second_attempt(self, sleep_mock, failed_mock):
         SSH.await_availability('')

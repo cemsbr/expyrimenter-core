@@ -18,6 +18,7 @@ class Shell(Runnable):
     def __init__(self, cmd, title=None, stdout=False, stderr=True):
         self._cmd = self._redirect_outputs(cmd, stdout, stderr)
         self._title, self._stdout, self._stderr = title, stdout, stderr
+        self._log = logging.getLogger('shell')
 
     def _redirect_outputs(self, cmd, stdout, stderr):
         """
@@ -53,16 +54,15 @@ class Shell(Runnable):
         return self._title
 
     def run_pre(self):
-        logger = logging.getLogger('shell')
-        logger.debug('beginning:' + self.title)
+        self._log.debug('beginning:' + self.title)
 
     def run(self):
-        """If the command exits 0, returns 0 or the stdout/stderr output.
-        Otherwise, raises CalledProcessError.
+        """If the command exits 0, returns 0 or selected (stdout/stderr) output.
+        Otherwise, logs the error and raises CalledProcessError.
 
-        :return: shell return code (0) or output.
+        :return: shell return code (0) or selected output.
         :rtype: int or str
-        :raises CalledProcessError: if return code is not 0.
+        :raises CalledProcessError: if shell return code is not 0.
         """
         self.run_pre()
 
@@ -72,10 +72,19 @@ class Shell(Runnable):
 
         if not (self._stdout or self._stderr):
             output = subprocess.check_call(self._cmd, **kwargs)
+            self.run_pos()
         else:
-            output = subprocess.check_output(self._cmd, **kwargs).strip()
+            try:
+                output = subprocess.check_output(self._cmd, **kwargs).strip()
+            except CalledProcessError as e:
+                output = '{} - code {}'.format(self.title, e.returncode)
+                if e.output:
+                    output += ', msg "{}"'.format(e.output.rstrip())
+                self._log.error(output)
+                raise e
+            finally:
+                self.run_pos()
 
-        self.run_pos()
         return output
 
     def was_successful(self):
@@ -99,5 +108,4 @@ class Shell(Runnable):
         return not self.was_successful()
 
     def run_pos(self):
-        logger = logging.getLogger('shell')
-        logger.debug('finished:' + self.title)
+        self._log.debug('finished:' + self.title)

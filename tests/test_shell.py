@@ -1,7 +1,11 @@
 import unittest
 from unittest.mock import Mock, patch
 from subprocess import CalledProcessError
+import logging
 from expyrimenter.core import Shell
+
+
+logging.disable(level=logging.CRITICAL)
 
 
 class TestShell(unittest.TestCase):
