@@ -1,0 +1,36 @@
+# grc configuration file for experiment log
+# Usage: copy to ~/.grc and run grcat conf.experiment experiment.log
+
+# date
+regexp=^(.+)\|.+\|(.+)\|.+$
+colours=default, cyan, yellow
+count=once
+-
+# ERROR
+regexp=\|(ERROR)\|.+\|(.+)$
+colours=unchanged, bold red, bold red
+count=once
+-
+# CRITICAL
+regexp=\|(CRITICAL)\|.+\|(.+)$
+colours=unchanged, blink italic bold red, underline bold red
+count=once
+-
+# WARN
+regexp=\|(WARNING)\|.+\|(.+)$
+colours=unchanged, bold yellow, bold yellow
+count=once
+-
+# INFO
+regexp=\|(INFO)\|.+\|(.+)$
+colours=unchanged, white, white
+count=once
+-
+# DEBUG
+regexp=\|(DEBUG)\|.+\|(.+)$
+colours=unchanged, blue, blue
+count=once
+-
+# divisors
+regexp=\|
+replace= 
