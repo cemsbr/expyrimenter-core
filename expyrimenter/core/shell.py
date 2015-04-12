@@ -1,7 +1,6 @@
-import logging
+from . import Runnable
 import subprocess
 from subprocess import CalledProcessError
-from .runnable import Runnable
 
 
 class Shell(Runnable):
@@ -16,10 +15,11 @@ class Shell(Runnable):
     """
 
     def __init__(self, cmd, title=None, stdout=False, stderr=True):
-        super().__init__()
         self._cmd = self._redirect_outputs(cmd, stdout, stderr)
-        self._title, self._stdout, self._stderr = title, stdout, stderr
-        self._log = logging.getLogger('shell')
+        if title is None:
+            title = self._cmd
+        super().__init__(log_name='shell', title=title)
+        self._stdout, self._stderr = stdout, stderr
 
     def _redirect_outputs(self, cmd, stdout, stderr):
         """
@@ -33,12 +33,6 @@ class Shell(Runnable):
             suffix += ' 2>/dev/null'
 
         return cmd + suffix
-
-    def _title_cmd(self):
-        return self._title if self._title else self._cmd
-
-    def run_pre(self):
-        self._log.debug('beginning:' + self._title_cmd())
 
     def run(self):
         """If the command exits 0, returns 0 or selected (stdout/stderr) output.
@@ -54,31 +48,22 @@ class Shell(Runnable):
         if self._stderr:
             kwargs['stderr'] = subprocess.STDOUT
 
-        if not (self._stdout or self._stderr):
-            self.output = subprocess.check_call(self._cmd, **kwargs)
+        try:
+            if not (self._stdout or self._stderr):
+                output = subprocess.check_call(self._cmd, **kwargs)
+            else:
+                output = subprocess.check_output(self._cmd, **kwargs).strip()
+            self._logger.success()
+        except CalledProcessError as e:
+            self._logger.failure(e)
+            raise e
+        finally:
             self.run_pos()
-        else:
-            try:
-                self.output = subprocess.check_output(self._cmd,
-                                                      **kwargs).strip()
-                self._log.info('success ' + self._title_cmd())
-                self.failed = False
-            except CalledProcessError as e:
-                self.output = 'failure {} - code {}'.format(self._title_cmd(),
-                                                            e.returncode)
-                if e.output:
-                    self.output += ', output "{}"'.format(e.output.rstrip())
-                self._log.error(self.output)
-                self.failed = True
-                raise e
-            finally:
-                self.executed = True
-                self.run_pos()
 
-        return self.output
+        return output
 
-    def was_successful(self):
-        """Runs the command and returns whether the return code is 0.
+    def is_successful(self):
+        """Runs the command and returns whether its return code is 0.
 
         :return: whether the command was successful.
         :rtype: bool
@@ -96,6 +81,3 @@ class Shell(Runnable):
         :rtype: bool
         """
         return not self.was_successful()
-
-    def run_pos(self):
-        self._log.debug('finished:' + self._title_cmd())

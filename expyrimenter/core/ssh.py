@@ -19,6 +19,7 @@ class SSH(Shell):
     def __init__(self, params, remote_cmd, title=None,
                  stdout=False, stderr=True):
         remote_cmd = self._redirect_outputs(remote_cmd, stdout, stderr)
+        # TODO escape remote_cmd
         cmd = "ssh %s '%s'" % (params, remote_cmd)
         super().__init__(cmd, title, stdout, stderr)
 

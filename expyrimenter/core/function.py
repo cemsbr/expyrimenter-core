@@ -15,6 +15,7 @@ class Function(Runnable):
         try:
             self.output = self._function(*self._args, **self._kwargs)
             self.failed = False
+            return self.output
             msgs = None
         except Exception as e:
             self.failed = True

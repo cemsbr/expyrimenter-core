@@ -1,36 +1,24 @@
+from .expylogger import ExpyLogger
+
+
 class Runnable:
-    def __init__(self):
-        self.title = None
-        self.executed = False
-        self.output = None
-        self.failed = True
+    def __init__(self, log_name=None, title=None):
+        if title is None:
+            title = self._id()
+        self.title = title
+        self._logger = ExpyLogger(title, log_name)
 
     def run(self):
         raise NotImplementedError('Runnable.run not implemented')
 
-    def log(self, logger, extra_msgs=None):
-        msgs = []
-        if self.title and self.executed:
-            msgs.append('finished {}'.format(self.title))
+    def _id(self):
+        return '{} {:d}'.format(type(self).__name__, id(self))
 
-        if extra_msgs:
-            msgs.extend(extra_msgs)
-        if self.output:
-            msgs.append('output "{}"'.format(self.output))
+    def run_pre(self):
+        self._logger.start()
 
-        full_msg = ', '.join(msgs) + '.'
-        logger.error(full_msg) if self.failed else logger.info(full_msg)
+    def run_pos(self):
+        self._logger.end()
 
     def __str__(self):
-        string = 'runnable'
-        if self.title:
-            string += ' "{}"'.format(self.title)
-        if not self.executed:
-            string += ' not executed.'
-        else:
-            string += ' executed '
-            string += 'with error' if self.failed else 'successfully'
-            if self.output:
-                string += ', output was "{}".'.format(self.output)
-
-        return string
+        return 'runnable "{}"'.format(self.title)
