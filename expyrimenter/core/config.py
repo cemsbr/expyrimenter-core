@@ -1,6 +1,5 @@
 from os.path import join, expanduser, dirname
 from configparser import ConfigParser
-import logging
 
 
 class Config:
@@ -12,7 +11,6 @@ class Config:
     """
     user_ini = join(expanduser('~'), '.expyrimenter', 'config.ini')
     _default_ini = join(dirname(__file__), '../', 'config.ini')
-    _logger = logging.getLogger('config')
 
     def __init__(self, section):
         """

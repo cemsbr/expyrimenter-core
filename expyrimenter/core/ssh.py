@@ -1,30 +1,32 @@
 from .shell import Shell
 from time import sleep
-import logging
+from . import ExpyLogger
 import random
 
 
 class SSH(Shell):
     """
-    :param str params: shell SSH params (at least the hostname).
+    :param str params: shell SSH params (at least, the hostname).
     :param str remote_cmd: Command to be run in remote host through SSH.
-    :param str title: A title to be displayed in log outputs.
-                      If None, the shell command will be shown.
-    :param bool stdout: Whether or not to display standard output.
-                        Default is *False*.
-    :param bool stderr: Whether or not to display standard error.
-                        Default is *True*.
+    :param bool stdout: Capture standard output? Default: *False*.
+    :param bool stderr: Capture standard error? Default: *True*.
+    :param str title: Task title. Default: whole shell command,
+                      including :attr:`remote_cmd`.
+    :param str logger: Logger name. Default: this class name.
     """
 
-    def __init__(self, params, remote_cmd, title=None,
-                 stdout=False, stderr=True):
+    def __init__(self, params, remote_cmd, stdout=False, stderr=True,
+                 title=None, logger_name=None):
         remote_cmd = self._redirect_outputs(remote_cmd, stdout, stderr)
         # TODO escape remote_cmd
-        cmd = "ssh %s '%s'" % (params, remote_cmd)
-        super().__init__(cmd, title, stdout, stderr)
+        cmd = "ssh {} '{}'".format(params, remote_cmd)
+        if logger_name is None:
+            logger_name = 'ssh'
+        super().__init__(cmd, stdout, stderr, title, logger_name)
 
-    @staticmethod
-    def await_availability(params, interval=5, max_rand=1):
+    @classmethod
+    def await_availability(cls, params, interval=5, max_rand=1,
+                           title=None, logger_name=None):
         """Periodically tries SSH until it is successful.
         This function is very useful in cloud environmentes, because
         there can be a considerable amount of time after a VM is running
@@ -34,11 +36,18 @@ class SSH(Shell):
         :param num interval: Time in seconds to wait before new trial.
         :param num max_rand: A float random number between 0 and ``max_rand``
                              will be added to ``interval``.
+        :param str title: Task title. Default: 'SSH test ":attr:`remote_cmd`"'
+        :param str logger_name: Logger name. Default: this class name.
         """
-        ssh = SSH(params, 'exit')
-        log = logging.getLogger('ssh')
-        while ssh.has_failed():
+        if title is None:
+            title = 'SSH test on "{}"'.format(params)
+        if logger_name is None:
+            logger_name = 'ssh'
+
+        logger = ExpyLogger(logger_name)
+        ssh = SSH(params, 'exit', title=title, logger_name=logger_name)
+        while ssh.fails():
             sleep(random.uniform(0, max_rand))
-            log.debug('Trying "ssh %s" again in %d + [0, %.2f) sec' %
-                      (params, interval, max_rand))
+            logger.debug('Will try "ssh %s" again in %d + [0, %.2f) sec' %
+                         (params, interval, max_rand))
             sleep(interval)

@@ -1,27 +1,32 @@
 from .runnable import Runnable
-import logging
-from urllib.error import HTTPError
 
 
 class Function(Runnable):
-    def __init__(self, function, *args, **kwargs):
-        super().__init__()
-        self._function = function
+    def __init__(self, fn, title=None, logger_name=None):
+        if title is None:
+            title = ' '.join((type(self).__name__, fn.__name__, id(self)))
+        if logger_name is None:
+            logger_name = 'function'
+        super().__init__(title=title, logger_name=logger_name)
+
+        self._fn = fn
+        self._args = ()
+        self._kwargs = {}
+
+    def set_args(self, *args, **kwargs):
         self._args = args
         self._kwargs = kwargs
 
     def run(self):
-        logger = logging.getLogger('function')
+        self.run_pre()
+
         try:
-            self.output = self._function(*self._args, **self._kwargs)
-            self.failed = False
-            return self.output
-            msgs = None
+            output = self._fn(*self._args, **self._kwargs)
+            self._logger.success(self.title)
         except Exception as e:
-            self.failed = True
-            msgs = ['{} - {}'.format(type(e).__name__, str(e))]
-            if type(e) is HTTPError:
-                msgs.append('"{}"'.format(e.read()))
+            self._logger.failure(self.title, e)
+            raise e
         finally:
-            self.executed = True
-            self.log(logger, msgs)
+            self.run_pos()
+
+        return output

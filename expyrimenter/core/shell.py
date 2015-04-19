@@ -6,25 +6,27 @@ from subprocess import CalledProcessError
 class Shell(Runnable):
     """
     :param str cmd: Command with arguments to be run.
-    :param str title: A title to be displayed in log outputs.
-                      If None, :attr:`cmd` will be shown.
-    :param bool stdout: Whether or not to display standard output.
-                        Default is *False*.
-    :param bool stderr: Whether or not to display standard error.
-                        Default is *True*.
+    :param bool stdout: Capture standard output? Default: *False*.
+    :param bool stderr: Capture standard error? Default: *True*.
+    :param str title: Task title. Default: :attr:`cmd`.
+    :param str logger: Logger name. Default: this class name.
     """
 
-    def __init__(self, cmd, title=None, stdout=False, stderr=True):
+    def __init__(self, cmd, stdout=False, stderr=True,
+                 title=None, logger_name=None):
         self._cmd = self._redirect_outputs(cmd, stdout, stderr)
         if title is None:
             title = self._cmd
-        super().__init__(log_name='shell', title=title)
+        if logger_name is None:
+            logger_name = 'shell'
+        super().__init__(title=title, logger_name=logger_name)
+
         self._stdout, self._stderr = stdout, stderr
 
     def _redirect_outputs(self, cmd, stdout, stderr):
         """
-        Avoid transfering unnecessary output through the network.
-        If local, keeps the output clean.
+        Can reduce the amount of output in the logs (and transfers in the
+        network, if using SSH)
         """
         suffix = ''
         if not stdout:
@@ -53,9 +55,9 @@ class Shell(Runnable):
                 output = subprocess.check_call(self._cmd, **kwargs)
             else:
                 output = subprocess.check_output(self._cmd, **kwargs).strip()
-            self._logger.success()
+            self._logger.success(self.title)
         except CalledProcessError as e:
-            self._logger.failure(e)
+            self._logger.failure(e, self.title)
             raise e
         finally:
             self.run_pos()
@@ -71,13 +73,13 @@ class Shell(Runnable):
         try:
             self.run()
             return True
-        except CalledProcessError:
+        except:
             return False
 
-    def has_failed(self):
+    def fails(self):
         """Runs the command and returns whether the return code differs from 0.
 
         :return: whether the command has failed.
         :rtype: bool
         """
-        return not self.was_successful()
+        return not self.is_successful()
