@@ -1,7 +1,8 @@
 from .shell import Shell
 from time import sleep
-from . import ExpyLogger
 import random
+from shlex import quote
+import logging
 
 
 class SSH(Shell):
@@ -15,18 +16,23 @@ class SSH(Shell):
     :param str logger: Logger name. Default: this class name.
     """
 
-    def __init__(self, params, remote_cmd, stdout=False, stderr=True,
-                 title=None, logger_name=None):
+    def __init__(self, params, remote_cmd,
+                 stdout=False,
+                 stderr=True,
+                 title=None,
+                 logger_name=None):
         remote_cmd = self._redirect_outputs(remote_cmd, stdout, stderr)
-        # TODO escape remote_cmd
-        cmd = "ssh {} '{}'".format(params, remote_cmd)
+        cmd = 'ssh {} {}'.format(params, quote(remote_cmd))
         if logger_name is None:
             logger_name = 'ssh'
         super().__init__(cmd, stdout, stderr, title, logger_name)
 
     @classmethod
-    def await_availability(cls, params, interval=5, max_rand=1,
-                           title=None, logger_name=None):
+    def await_availability(cls, params,
+                           interval=5,
+                           max_rand=1,
+                           title=None,
+                           logger_name=None):
         """Periodically tries SSH until it is successful.
         This function is very useful in cloud environmentes, because
         there can be a considerable amount of time after a VM is running
@@ -44,8 +50,9 @@ class SSH(Shell):
         if logger_name is None:
             logger_name = 'ssh'
 
-        logger = ExpyLogger(logger_name)
+        logger = logging.getLogger(logger_name)
         ssh = SSH(params, 'exit', title=title, logger_name=logger_name)
+        ssh.failure_level = logging.DEBUG
         while ssh.fails():
             sleep(random.uniform(0, max_rand))
             logger.debug('Will try "ssh %s" again in %d + [0, %.2f) sec' %

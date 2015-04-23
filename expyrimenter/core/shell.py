@@ -1,6 +1,7 @@
 from . import Runnable
 import subprocess
 from subprocess import CalledProcessError
+import logging
 
 
 class Shell(Runnable):
@@ -12,8 +13,11 @@ class Shell(Runnable):
     :param str logger: Logger name. Default: this class name.
     """
 
-    def __init__(self, cmd, stdout=False, stderr=True,
-                 title=None, logger_name=None):
+    def __init__(self, cmd,
+                 stdout=False,
+                 stderr=True,
+                 title=None,
+                 logger_name=None):
         self._cmd = self._redirect_outputs(cmd, stdout, stderr)
         if title is None:
             title = self._cmd
@@ -22,6 +26,7 @@ class Shell(Runnable):
         super().__init__(title=title, logger_name=logger_name)
 
         self._stdout, self._stderr = stdout, stderr
+        self.failure_level = logging.ERROR
 
     def _redirect_outputs(self, cmd, stdout, stderr):
         """
@@ -57,7 +62,7 @@ class Shell(Runnable):
                 output = subprocess.check_output(self._cmd, **kwargs).strip()
             self._logger.success(self.title)
         except CalledProcessError as e:
-            self._logger.failure(e, self.title)
+            self._logger.failure(e, self.title, level=self.failure_level)
             raise e
         finally:
             self.run_pos()

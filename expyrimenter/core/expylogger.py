@@ -23,6 +23,7 @@ class ExpyLogger(logging.Logger):
             format = '%(asctime)s|%(levelname)s|%(name)s|%(message)s'
 
         logging.basicConfig(level=level, format=format)
+        logging.setLoggerClass(cls)
         cls.configured = True
 
     def start(self, title, level=logging.DEBUG):
@@ -34,7 +35,9 @@ class ExpyLogger(logging.Logger):
     def success(self, title, level=logging.INFO):
         self.log(level, 'success "%s"', title)
 
-    def failure(self, title, exception=None, extra_msg=None,
+    def failure(self, title,
+                exception=None,
+                extra_msg=None,
                 level=logging.ERROR):
         msg, args = 'failure "%s"', [title]
         if exception:

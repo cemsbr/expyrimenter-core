@@ -4,7 +4,6 @@ from subprocess import CalledProcessError
 import logging
 from expyrimenter.core import Shell
 
-
 logging.disable(level=logging.CRITICAL)
 
 
@@ -109,6 +108,7 @@ class TestShell(unittest.TestCase):
         exception = CalledProcessError(returncode=1, cmd='')
         with patch('subprocess.check_output', side_effect=exception):
             self.assertTrue(shell.has_failed())
+
 
 if __name__ == '__main__':
     unittest.main()
