@@ -3,6 +3,7 @@ branches:
     only:
         - master
         - pre-master
+        - v2
 python:
   - "3.3"
   - "3.4"
