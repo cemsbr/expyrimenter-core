@@ -51,12 +51,14 @@ class ExpyLogger(logging.getLoggerClass()):
     def failure(self, title,
                 exception=None,
                 extra_msg=None,
+                extra_args=None,
                 level=logging.ERROR):
         msg, args = 'failure "%s"', [title]
         if exception:
             msg, args = self._add_exception_info(exception, msg, args)
         if extra_msg:
             msg += ', ' + extra_msg
+            args.extend(extra_args)
         self.log(level, msg, *args)
 
     def _add_exception_info(self, exception, msg, args):
