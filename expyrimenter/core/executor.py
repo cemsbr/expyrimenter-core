@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from .config import Config
-from collections import deque, namedtuple
+from collections import deque
 from threading import Lock, RLock
 
 
@@ -8,7 +8,15 @@ class Wait:
     pass
 
 
-FutureParams = namedtuple('FutureParams', ['fn', 'args', 'kwargs'])
+class EnqueuedTask:
+    def __init__(self, fn, args, kwargs):
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+        self.callbacks = []
+
+    def add_done_callback(self, callback):
+        self.callbacks.append(callback)
 
 
 class Executor:
@@ -38,8 +46,8 @@ class Executor:
             self._working_lock.acquire()
 
         future = self._executor.submit(fn, *args, **kwargs)
-        future.add_done_callback(self._callback)
         self._futures.append(future)
+        future.add_done_callback(self._callback)
         return future
 
     def add_barrier(self):
@@ -68,8 +76,9 @@ class Executor:
         self._executor.shutdown()
 
     def _enqueue(self, fn, *args, **kwargs):
-        future_params = FutureParams(fn, args, kwargs)
-        self._queue.append(future_params)
+        enqueued_task = EnqueuedTask(fn, args, kwargs)
+        self._queue.append(enqueued_task)
+        return enqueued_task
 
     def _callback(self, future):
         """Must be thread-safe because of python specs."""
@@ -87,7 +96,12 @@ class Executor:
             self._queue.popleft()
         if not self._queue:
             self._working_lock.release()
-        while self._queue and isinstance(self._queue[0], FutureParams):
-            task = self._queue[0]
-            self._run_now(task.fn, *task.args, **task.kwargs)
-            self._queue.popleft()
+        while self._queue and isinstance(self._queue[0], EnqueuedTask):
+            self._submit_from_queue()
+
+    def _submit_from_queue(self):
+        task = self._queue[0]
+        future = self._run_now(task.fn, *task.args, **task.kwargs)
+        for callback in task.callbacks:
+            future.add_done_callback(callback)
+        self._queue.popleft()
